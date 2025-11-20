@@ -20,11 +20,6 @@
 
         .hidden { display: none !important; opacity: 0; pointer-events: none; }
 
-        /* REDUCED MOTION: respect user preference */
-        @media (prefers-reduced-motion: reduce) {
-            * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
-        }
-
         /* INTRO SCENE */
         #intro-scene {
             position: fixed;
@@ -80,6 +75,12 @@
         .f-left { left: 30%; transform: translateX(-50%) scale(0.85); z-index: 15; }
         .f-right { left: 70%; transform: translateX(-50%) scale(0.85); z-index: 15; }
 
+        /* Stem
+           IMPORTANT PERFORMANCE FIX:
+           - Previously animating `height` caused layout reflows -> lag.
+           - Now set a fixed height and animate transform: scaleY(0 -> 1) with transform-origin: bottom
+           - Add will-change: transform so browser can GPU-accelerate.
+        */
         .f-stem {
             width: 6px;
             border-radius: 10px;
@@ -93,9 +94,11 @@
             will-change: transform;
             background: linear-gradient(to top, rgba(0,30,20,0.4), #00bfa5, #64dd17);
         }
+        /* shorter stems */
         .f-left .f-stem { height: 260px; }
         .f-right .f-stem { height: 260px; }
 
+        /* Grow by scaling Y */
         .f-center .f-stem { animation: grow-stem 2.2s cubic-bezier(.4,0,.2,1) forwards 0.6s; }
         .f-left .f-stem { animation: grow-stem 2.2s cubic-bezier(.4,0,.2,1) forwards 0.9s; }
         .f-right .f-stem { animation: grow-stem 2.2s cubic-bezier(.4,0,.2,1) forwards 1.1s; }
@@ -190,6 +193,7 @@
             animation-delay: var(--d, 0s);
         }
 
+        /* flower appear (scale) for center wrappers */
         .f-center .f-head { animation: bloom-appear 700ms cubic-bezier(.34,1.2,.64,1) forwards 1.8s; }
         .f-left .f-head   { animation: bloom-appear 700ms cubic-bezier(.34,1.2,.64,1) forwards 2.0s; }
         .f-right .f-head  { animation: bloom-appear 700ms cubic-bezier(.34,1.2,.64,1) forwards 2.2s; }
@@ -254,21 +258,7 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.15);
             box-sizing: border-box;
         }
-
-        /* improved flip: preserve-3d and hide backface to avoid flicker */
-        .flap {
-            position: absolute;
-            top: 0; left: 0; width: 0; height: 0;
-            border-left: 170px solid transparent;
-            border-right: 170px solid transparent;
-            border-top: 130px solid #ff8a65;
-            transform-origin: top;
-            transition: transform 0.6s ease-in-out;
-            z-index: 5;
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-        }
-
+        .flap { position: absolute; top: 0; left: 0; width: 0; height: 0; border-left: 170px solid transparent; border-right: 170px solid transparent; border-top: 130px solid #ff8a65; transform-origin: top; transition: transform 0.6s ease-in-out; z-index: 5; }
         .pocket { position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-left: 170px solid transparent; border-right: 170px solid transparent; border-bottom: 120px solid #ff9e80; z-index: 4; border-radius: 0 0 12px 12px; pointer-events: none; }
 
         /* letter uses transform for vertical movement to avoid reflow */
@@ -321,53 +311,6 @@
         .cursor { display: inline-block; width: 2px; height: 16px; background: #d84315; animation: blink 0.8s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* --- Mobile-specific layout & perf fixes --- */
-        @media (max-width: 720px) {
-          #scene-envelope {
-            padding-top: 4vh; /* small top padding to avoid notch overlap */
-            justify-content: center; /* vertical center */
-          }
-
-          .wrapper {
-            max-width: 360px;
-            padding: 8px;
-            transform: translateY(0) !important;
-          }
-
-          .envelope {
-            width: min(92vw, 340px);
-            height: auto;
-            max-height: 52vh;
-            box-shadow: 0 10px 18px rgba(0,0,0,0.12);
-          }
-
-          .core { filter: none; box-shadow: 0 0 12px #ffd740; }
-
-          .big-heart-btn { font-size: 36px; animation-duration: 2.2s; }
-
-          .leaves-container { opacity: 0.9; }
-          .leaf { animation-duration: 6s !important; font-size: 14px !important; }
-        }
-
-        /* Prefer reduced motion already exists; ensure we are aggressive on mobile low power */
-        @media (prefers-reduced-motion: reduce), (max-width: 720px) {
-          .flower-group .petal-layer,
-          .f-stem,
-          .firefly,
-          .star,
-          .leaf,
-          .read-letter-btn,
-          .big-heart-btn {
-            animation: none !important;
-            transition: none !important;
-          }
-        }
-
-        /* Optional: hide intro-scene entirely on very small screens via CSS fallback */
-        @media (max-width: 520px) {
-          #intro-scene { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-        }
-
         @media (max-width: 600px) {
             .envelope { width: 300px; height: 200px; }
             .wrapper.opened .letter { width: 280px; height: 400px; transform: translate(-50%, -50px); bottom: 0; }
@@ -380,7 +323,7 @@
 <body>
 
     <!-- INTRO SCENE: GALAXY GLOWING ROSES -->
-    <div id="intro-scene" title="Chạm vào hoa để mở thư" role="button" aria-label="Màn hình mở đầu, chạm để mở">
+    <div id="intro-scene" title="Chạm vào hoa để mở thư">
         <!-- Stars -->
         <div class="star" style="top:6%; left:18%; animation-delay:0s;"></div>
         <div class="star" style="top:22%; left:80%; animation-delay:1s;"></div>
@@ -394,9 +337,9 @@
         <div class="firefly" style="left: 70%; top: 42%; animation-delay:2s;"></div>
         <div class="firefly" style="left: 50%; top: 80%; animation-delay:4s;"></div>
 
-        <div class="flower-group" id="flower-group" aria-hidden="true">
+        <div class="flower-group" id="flower-group">
             <!-- LEFT FLOWER -->
-            <div class="f-wrapper f-left" aria-hidden="true">
+            <div class="f-wrapper f-left">
                 <div class="f-stem"><div class="f-leaf l1"></div></div>
                 <div class="f-head">
                     <!-- 8 petals -->
@@ -413,7 +356,7 @@
             </div>
 
             <!-- CENTER FLOWER -->
-            <div class="f-wrapper f-center" aria-hidden="true">
+            <div class="f-wrapper f-center">
                 <div class="f-stem">
                     <div class="f-leaf l1"></div>
                     <div class="f-leaf l2"></div>
@@ -432,7 +375,7 @@
             </div>
 
             <!-- RIGHT FLOWER -->
-            <div class="f-wrapper f-right" aria-hidden="true">
+            <div class="f-wrapper f-right">
                 <div class="f-stem"><div class="f-leaf l1"></div></div>
                 <div class="f-head">
                     <div class="petal-layer p1"></div>
@@ -452,10 +395,10 @@
     </div>
 
     <!-- MAIN SCENE -->
-    <div id="scene-envelope" aria-live="polite">
-        <div class="leaves-container" id="leaves-container" aria-hidden="true"></div>
+    <div id="scene-envelope">
+        <div class="leaves-container" id="leaves-container"></div>
 
-        <div class="decor-bg" aria-hidden="true" style="pointer-events:none;">
+        <div class="decor-bg" aria-hidden="true">
             <svg class="decor-text-svg" viewBox="0 0 500 500" aria-hidden="true">
                 <path id="circlePathLarge" fill="none" d="M 250, 250 m -200, 0 a 200,200 0 1,1 400,0 a 200,200 0 1,1 -400,0"/>
                 <text font-size="20" fill="#ef9a9a" font-weight="bold" letter-spacing="4">
@@ -466,40 +409,40 @@
             </svg>
         </div>
 
-        <div class="wrapper" id="envelope-wrapper" aria-label="Hộp thư" tabindex="0">
-            <div class="envelope" role="button" aria-pressed="false" aria-label="Phong bì, nhấn để mở">
+        <div class="wrapper" id="envelope-wrapper" aria-label="Hộp thư">
+            <div class="envelope" role="button" aria-pressed="false">
                 <div class="flap" aria-hidden="true"></div>
                 <div class="pocket" aria-hidden="true"></div>
                 <div class="letter" aria-hidden="true">
                     <div class="letter-content-wrapper">
                         <h2 id="letter-title">Tri Ân Thầy Cô</h2>
-                        <div class="text-content" aria-live="polite" aria-atomic="true">
-                            <span id="typing-area"></span><span class="cursor" aria-hidden="true"></span>
+                        <div class="text-content">
+                            <span id="typing-area"></span><span class="cursor"></span>
                         </div>
 
-                        <div class="action-area" id="action-area" aria-hidden="true">
-                            <button class="big-heart-btn" id="link-heart-btn" title="Mở quà" aria-label="Mở liên kết tới trang của tôi">❤️</button>
+                        <div class="action-area" id="action-area">
+                            <button class="big-heart-btn" id="link-heart-btn" title="Mở quà">❤️</button>
                             <div class="helper-text">Nhấn trái tim</div>
-                            <button class="btn-close" id="close-letter-btn" aria-label="Đóng thư">Đóng lại</button>
+                            <button class="btn-close" id="close-letter-btn">Đóng lại</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <button class="read-letter-btn" id="read-letter-btn" aria-label="Đọc thư cùng em"><span>🔊</span> Đọc thư cùng em</button>
+        <button class="read-letter-btn" id="read-letter-btn"><span>🔊</span> Đọc thư cùng em</button>
         <div class="signature">Made by KaceDev</div>
     </div>
 
     <script>
         // ==========================================
         // --- CẤU HÌNH USER ---
-        const YOUR_WEBSITE_URL = 'https://kacedevv.github.io/nhagiaovietnam'; // <-- sửa thành url của bạn (mở trong cùng tab)
+        const YOUR_WEBSITE_URL = 'https://YOUR-WEBSITE.COM'; // <-- sửa thành url của bạn (mở trong cùng tab)
         const AUDIO_MP3_URL = ''; // (tùy chọn) link mp3
 
-        const GREETING_TEXT = `Nhân ngày Nhà giáo Việt Nam 20/11, chúng em xin gửi lời tri ân sâu sắc nhất đến Cô.
+        const GREETING_TEXT = `Nhân ngày Nhà giáo Việt Nam 20/11, em xin gửi lời tri ân sâu sắc nhất đến Thầy Cô.
 
-Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên người. Kính chúc Cô luôn mạnh khỏe, hạnh phúc và giữ mãi ngọn lửa đam mê với sự nghiệp trồng người cao quý!`;
+Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên người. Kính chúc Thầy Cô luôn mạnh khỏe, hạnh phúc và giữ mãi ngọn lửa đam mê với sự nghiệp trồng người cao quý!`;
 
         // --- DOM ---
         const introScene = document.getElementById('intro-scene');
@@ -518,118 +461,51 @@ Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên ng�
         let isReading = false;
         let speechUtterance = null;
         let audioPlayer = null;
-        let availableVoices = [];
-
-        // --- VOICE PRELOAD (handle voiceschanged) ---
-        function loadVoices() {
-            if (!('speechSynthesis' in window)) return;
-            availableVoices = window.speechSynthesis.getVoices() || [];
-        }
-        if ('speechSynthesis' in window) {
-            loadVoices();
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-        }
-
-        // --- PRELOAD AUDIO (if configured) ---
-        if (AUDIO_MP3_URL && AUDIO_MP3_URL.trim() !== '') {
-            try {
-                audioPlayer = new Audio(AUDIO_MP3_URL);
-                audioPlayer.preload = 'auto';
-                audioPlayer.load();
-                audioPlayer.onended = () => { isReading = false; };
-            } catch (e) {
-                console.warn('Không thể preload audio:', e);
-            }
-        }
-
-        // --- QUICK MOBILE PERF & SKIP INTRO ---
-        (function handleMobileIntroSkip() {
-          const isSmall = window.innerWidth < 720;
-          const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-          if (isSmall || isTouch) {
-            introScene.style.opacity = '0';
-            introScene.classList.add('hidden');
-            sceneEnvelope.style.opacity = '1';
-            setTimeout(() => { envelopeWrapper.focus(); }, 120);
-            flowerGroup.classList.remove('blooming', 'magic');
-          }
-        })();
 
         // --- INTRO LOGIC ---
         introScene.addEventListener('click', () => {
+            // add blooming: petals animate open
+            // add class first so CSS keyframes run
             flowerGroup.classList.add('blooming');
 
+            // small delay then mark magic explosion then hide intro
+            // reduced delays to be snappier and avoid long blocking animation
             setTimeout(() => {
                 flowerGroup.classList.add('magic');
             }, 700);
 
+            // fade intro out after animation finishes
             setTimeout(() => {
                 introScene.style.opacity = '0';
                 setTimeout(() => {
                     introScene.classList.add('hidden');
                     sceneEnvelope.style.opacity = '1';
-                    setTimeout(() => envelopeWrapper.focus(), 200);
                 }, 450);
-            }, 1200);
+            }, 1200); // enough time to show petal bloom
         }, { passive: true });
 
-        // allow keyboard to activate intro (Enter / Space)
-        introScene.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                introScene.click();
-            }
-        });
-
-        // --- LEAVES (lighter on small screens) ---
+        // --- LEAVES ---
         function createLeaves() {
             const container = document.getElementById('leaves-container');
-            container.innerHTML = '';
-            const leafChars = ['🍂','🍁','🍃'];
-            const count = (window.innerWidth < 720 || ('ontouchstart' in window)) ? 6 : 15;
-            for (let i = 0; i < count; i++) {
+            const leafChars = ['🍂', '🍁', '🍃', '🌸'];
+            for (let i = 0; i < 15; i++) {
                 const el = document.createElement('div');
                 el.classList.add('leaf');
                 el.innerText = leafChars[Math.floor(Math.random() * leafChars.length)];
                 el.style.left = Math.random() * 100 + '%';
-                el.style.fontSize = (Math.random() * 10 + 14) + 'px';
-                el.style.animationDuration = (Math.random() * 6 + 6) + 's';
-                el.style.animationDelay = '-' + (Math.random() * 6) + 's';
-                el.style.opacity = 0.9;
+                el.style.fontSize = (Math.random() * 15 + 15) + 'px';
+                el.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                el.style.animationDelay = '-' + (Math.random() * 5) + 's';
+                el.style.opacity = 0.95;
                 container.appendChild(el);
             }
         }
         createLeaves();
 
-        // optionally: if user rotates device or resizes, throttle re-create leaves
-        let reCreateLeavesTimeout = null;
-        window.addEventListener('resize', () => {
-          clearTimeout(reCreateLeavesTimeout);
-          reCreateLeavesTimeout = setTimeout(() => {
-            createLeaves();
-            if (window.innerWidth < 720) {
-              introScene.style.opacity = '0';
-              introScene.classList.add('hidden');
-              sceneEnvelope.style.opacity = '1';
-            }
-          }, 250);
-        });
-
         // --- OPEN ENVELOPE ---
         envelopeWrapper.addEventListener('click', (e) => {
             if (e.target.closest('button') || isOpened) return;
             openLetter();
-        });
-
-        // keyboard open/close (Enter/Space)
-        envelopeWrapper.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (!isOpened) openLetter();
-                else closeLetter();
-            } else if (e.key === 'Escape') {
-                if (isOpened) closeLetter();
-            }
         });
 
         readBtn.addEventListener('click', (e) => {
@@ -641,49 +517,29 @@ Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên ng�
         function openLetter() {
             isOpened = true;
             envelopeWrapper.classList.add('opened');
-            envelopeWrapper.querySelector('.envelope').setAttribute('aria-pressed', 'true');
+            // hide read button gracefully
             readBtn.style.opacity = '0';
             setTimeout(() => readBtn.style.display = 'none', 400);
+
+            // reveal title and start typing after small delay
             setTimeout(() => {
                 letterTitle.style.opacity = '1';
                 typeWriter(GREETING_TEXT, 0);
             }, 540);
         }
 
-        function closeLetter() {
-            isOpened = false;
-            envelopeWrapper.classList.remove('opened');
-            envelopeWrapper.querySelector('.envelope').setAttribute('aria-pressed', 'false');
-            typingArea.innerHTML = '';
-            letterTitle.style.opacity = '0';
-            actionArea.style.opacity = '0';
-            actionArea.style.transform = 'scale(0)';
-            cursor.style.display = 'inline-block';
-            readBtn.style.display = 'flex';
-            setTimeout(() => readBtn.style.opacity = '1', 100);
-
-            if (audioPlayer) {
-                audioPlayer.pause();
-                audioPlayer.currentTime = 0;
-            }
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-            }
-            isReading = false;
-        }
-
-        // Typing effect
+        // Typing effect (unchanged)
         function typeWriter(text, i) {
             if (!isOpened) return;
             if (i < text.length) {
                 if (text.charAt(i) === '\n') {
                     typingArea.innerHTML += '<br>';
                 } else {
-                    const ch = text.charAt(i).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                    typingArea.innerHTML += ch;
+                    typingArea.innerHTML += text.charAt(i);
                 }
 
                 const wrapper = document.querySelector('.letter-content-wrapper');
+                // keep scrolled to bottom
                 wrapper.scrollTop = wrapper.scrollHeight;
 
                 let delay = 40;
@@ -699,7 +555,6 @@ Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên ng�
         function showFinalAction() {
             actionArea.style.opacity = '1';
             actionArea.style.transform = 'scale(1)';
-            actionArea.setAttribute('aria-hidden', 'false');
         }
 
         // --- AUDIO/READING ---
@@ -707,7 +562,6 @@ Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên ng�
             if (AUDIO_MP3_URL && AUDIO_MP3_URL.trim() !== '') {
                 if (!audioPlayer) {
                     audioPlayer = new Audio(AUDIO_MP3_URL);
-                    audioPlayer.preload = 'auto';
                     audioPlayer.onended = () => { isReading = false; };
                 }
                 if (isReading) {
@@ -729,14 +583,8 @@ Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên ng�
 
                 speechUtterance = new SpeechSynthesisUtterance(GREETING_TEXT);
 
-                let vnVoice = null;
-                if (availableVoices && availableVoices.length) {
-                    vnVoice = availableVoices.find(voice => (voice.lang && voice.lang.toLowerCase().includes('vi')) || (voice.name && (voice.name.toLowerCase().includes('vietnamese') || voice.name.toLowerCase().includes('tiếng việt'))));
-                } else {
-                    const voicesNow = window.speechSynthesis.getVoices() || [];
-                    vnVoice = voicesNow.find(voice => (voice.lang && voice.lang.toLowerCase().includes('vi')) || (voice.name && (voice.name.toLowerCase().includes('vietnamese') || voice.name.toLowerCase().includes('tiếng việt'))));
-                }
-
+                const voices = window.speechSynthesis.getVoices();
+                const vnVoice = voices.find(voice => (voice.lang && voice.lang.includes('vi')) || (voice.name && (voice.name.includes('Vietnamese') || voice.name.includes('Tiếng Việt'))));
                 if (vnVoice) speechUtterance.voice = vnVoice;
                 else speechUtterance.lang = 'vi-VN';
 
@@ -749,16 +597,16 @@ Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên ng�
             }
         }
 
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {};
+        }
+
         // --- BUTTON ACTIONS ---
+        // Open in same tab
         linkHeartBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            e.preventDefault();
             if (YOUR_WEBSITE_URL && YOUR_WEBSITE_URL.trim() !== '') {
-                try {
-                    location.assign(YOUR_WEBSITE_URL);
-                } catch (err) {
-                    window.location.href = YOUR_WEBSITE_URL;
-                }
+                location.href = YOUR_WEBSITE_URL;
             } else {
                 alert('Chưa cài đặt YOUR_WEBSITE_URL trong script.');
             }
@@ -766,26 +614,26 @@ Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên ng�
 
         closeBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            closeLetter();
-        });
+            isOpened = false;
+            envelopeWrapper.classList.remove('opened');
+            typingArea.innerHTML = '';
+            letterTitle.style.opacity = '0';
+            actionArea.style.opacity = '0';
+            actionArea.style.transform = 'scale(0)';
+            cursor.style.display = 'inline-block';
 
-        // Accessibility: allow closing by Escape globally when opened
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isOpened) {
-                closeLetter();
-            }
-        });
+            readBtn.style.display = 'flex';
+            setTimeout(() => readBtn.style.opacity = '1', 100);
 
-        // Safe focus management: when page loads, focus intro (so keyboard users can press Enter)
-        window.addEventListener('load', () => {
-            if (!introScene.classList.contains('hidden')) {
-                introScene.setAttribute('tabindex', '0');
-                introScene.focus();
-            } else {
-                // if skipped, ensure envelope is visible and focused
-                setTimeout(() => envelopeWrapper.focus(), 120);
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
             }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            isReading = false;
         });
     </script>
 </body>
-</html>
+    </html>
