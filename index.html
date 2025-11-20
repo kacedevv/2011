@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Chúc mừng ngày Nhà giáo Việt Nam 20/11</title>
+    <style>
+        /* --- RESET & BASE STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background-color: #fff5f5;
+            transition: background-color 1s;
+        }
+
+        .hidden { display: none !important; opacity: 0; pointer-events: none; }
+
+        /* INTRO SCENE */
+        #intro-scene {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 30% 20%, #112233 0%, #000 60%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 1.2s ease-in-out;
+            overflow: hidden;
+        }
+
+        /* Stars & fireflies */
+        .star { position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%; box-shadow: 0 0 6px #fff; opacity: 0.9; animation: twinkle 3s infinite ease-in-out; }
+        .firefly { position: absolute; width: 5px; height: 5px; background: #ffd54f; border-radius: 50%; box-shadow: 0 0 10px #ffd54f; opacity: 0; animation: fly 8s infinite ease-in-out; }
+
+        .intro-text {
+            position: absolute;
+            bottom: 10%;
+            width: 100%;
+            text-align: center;
+            color: #ff9a9a;
+            font-size: 14px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 12px rgba(255,120,120,0.6);
+            animation: pulseText 3s infinite;
+            font-weight: 400;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        /* FLOWER GROUP */
+        .flower-group {
+            position: relative;
+            width: 420px;
+            height: 420px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            pointer-events: none;
+            transform: translateY(-6%);
+        }
+
+        .f-wrapper { position: absolute; bottom: 0; transform-origin: bottom center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; pointer-events: none; }
+
+        .f-center { left: 50%; transform: translateX(-50%); z-index: 20; }
+        .f-left { left: 30%; transform: translateX(-50%) scale(0.85); z-index: 15; }
+        .f-right { left: 70%; transform: translateX(-50%) scale(0.85); z-index: 15; }
+
+        /* Stem */
+        .f-stem {
+            width: 6px;
+            background: linear-gradient(to top, rgba(0,30,20,0.4), #00bfa5, #64dd17);
+            border-radius: 10px;
+            height: 0;
+            position: relative;
+            box-shadow: 0 0 12px rgba(0, 191, 165, 0.15);
+            opacity: 0.95;
+            transition: opacity 0.4s;
+        }
+        .f-center .f-stem { animation: grow-stem 2.2s cubic-bezier(.4,0,.2,1) forwards 0.6s; }
+        .f-left .f-stem { animation: grow-stem-side 2.2s cubic-bezier(.4,0,.2,1) forwards 0.9s; }
+        .f-right .f-stem { animation: grow-stem-side 2.2s cubic-bezier(.4,0,.2,1) forwards 1.1s; }
+
+        @keyframes grow-stem { to { height: 320px; } }
+        @keyframes grow-stem-side { to { height: 260px; } }
+
+        /* Leaves */
+        .f-leaf {
+            position: absolute;
+            width: 60px; height: 40px;
+            border-radius: 12px 40px 12px 40px;
+            background: linear-gradient(135deg, rgba(0,200,150,0.12), rgba(0,230,150,0.45));
+            border: 1px solid rgba(100,255,200,0.18);
+            box-shadow: 0 0 10px rgba(0,200,150,0.12), inset 0 0 8px rgba(0,200,150,0.06);
+            opacity: 0;
+            transform-origin: bottom left;
+        }
+        .f-center .l1 { top: 42%; left: -36px; transform: rotate(-28deg) scale(0); animation: grow-leaf 1.4s ease-out forwards 1.8s; }
+        .f-center .l2 { top: 58%; right: -36px; transform-origin: bottom right; transform: rotate(28deg) scale(0); animation: grow-leaf 1.4s ease-out forwards 2.0s; }
+        .f-left .l1 { top: 52%; left: -30px; transform: rotate(-18deg) scale(0); animation: grow-leaf 1.4s ease-out forwards 2.2s; }
+        .f-right .l1 { top: 52%; right: -30px; transform-origin: bottom right; transform: rotate(18deg) scale(0); animation: grow-leaf 1.4s ease-out forwards 2.4s; }
+
+        @keyframes grow-leaf { to { opacity: 1; transform: rotate(var(--r, -28deg)) scale(1); } }
+
+        /* FLOWER HEAD (petals) */
+        .f-head {
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 120px;
+            height: 120px;
+            display: block;
+            z-index: 30;
+            pointer-events: none;
+            transition: transform .35s;
+        }
+
+        /* Petals base */
+        .petal-layer {
+            position: absolute;
+            top: 14%;
+            left: 50%;
+            width: 48px;
+            height: 86px;
+            transform-origin: 50% 85%;
+            border-radius: 48% 48% 22% 22% / 60% 60% 40% 40%;
+            background: radial-gradient(circle at 50% 70%, #ff6b81, #b71c1c);
+            box-shadow: 0 6px 18px rgba(255, 60, 100, 0.25), inset 0 -6px 18px rgba(255,255,255,0.06);
+            opacity: 0;
+            transform: translateX(-50%) rotate(0deg) scale(0);
+        }
+
+        /* per-petal variables */
+        .petal-layer.p1 { --rot: -100deg; --d: 0.05s; left: 50%; }
+        .petal-layer.p2 { --rot: -70deg; --d: 0.08s; }
+        .petal-layer.p3 { --rot: -35deg; --d: 0.11s; }
+        .petal-layer.p4 { --rot: 0deg;    --d: 0.14s; }
+        .petal-layer.p5 { --rot: 35deg;  --d: 0.17s; }
+        .petal-layer.p6 { --rot: 70deg;  --d: 0.20s; }
+        .petal-layer.p7 { --rot: 100deg; --d: 0.23s; }
+        .petal-layer.p8 { --rot: 140deg; --d: 0.26s; }
+
+        /* core */
+        .core {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px; height: 22px;
+            background: radial-gradient(circle at 30% 30%, #fff59d, #ffd740);
+            border-radius: 50%;
+            filter: blur(6px);
+            box-shadow: 0 0 22px #ffd740, 0 0 40px rgba(255, 87, 34, 0.25);
+            z-index: 50;
+            opacity: 0.95;
+        }
+
+        /* Petal bloom animation triggered by adding .blooming on group */
+        @keyframes petal-bloom {
+            0% { transform: translateX(-50%) rotate(calc(var(--rot) * 1.1)) scale(0); opacity: 0; filter: blur(6px); }
+            60% { transform: translateX(-50%) rotate(calc(var(--rot) * 0.9)) scale(1.05); opacity: 1; filter: blur(0px); }
+            100% { transform: translateX(-50%) rotate(var(--rot)) scale(1); opacity: 1; filter: blur(0px); }
+        }
+
+        .flower-group.blooming .petal-layer {
+            animation: petal-bloom 700ms cubic-bezier(.2,.9,.3,1) forwards;
+            animation-delay: var(--d, 0s);
+        }
+
+        /* flower appear (scale) for center wrappers */
+        .f-center .f-head { animation: bloom-appear 700ms cubic-bezier(.34,1.2,.64,1) forwards 1.8s; }
+        .f-left .f-head   { animation: bloom-appear 700ms cubic-bezier(.34,1.2,.64,1) forwards 2.0s; }
+        .f-right .f-head  { animation: bloom-appear 700ms cubic-bezier(.34,1.2,.64,1) forwards 2.2s; }
+
+        @keyframes bloom-appear {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        /* click bloom magical explosion effect */
+        .flower-group.blooming.magic .petal-layer,
+        .flower-group.blooming.magic .core {
+            animation: magic-bloom 1.2s ease-in-out forwards !important;
+        }
+        @keyframes magic-bloom {
+            0% { transform: translateX(-50%) scale(1) rotate(var(--rot)); opacity: 1; filter: none; }
+            50% { transform: translateX(-50%) scale(6) rotate(calc(var(--rot) + 60deg)); opacity: 0.85; filter: brightness(1.5) saturate(1.2); }
+            100% { transform: translateX(-50%) scale(18) rotate(calc(var(--rot) + 120deg)); opacity: 0; filter: blur(30px) brightness(3); }
+        }
+
+        @keyframes pulseText { 0%,100% {opacity:0.8; transform:scale(1);} 50% { opacity:1; transform:scale(1.06); text-shadow:0 0 18px rgba(255,120,120,0.8);} }
+        @keyframes twinkle { 0%,100% { opacity: 0.3; transform: scale(0.8);} 50% { opacity: 1; transform: scale(1.4); box-shadow: 0 0 15px white; } }
+        @keyframes fly {
+            0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(120px, -220px) scale(0.6); opacity: 0; }
+        }
+
+        /* MAIN SCENE (envelope) - unchanged except minor adjustments */
+        #scene-envelope { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; z-index: 10; opacity: 0; transition: opacity 1.2s; }
+
+        .leaves-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
+        .leaf { position: absolute; top: -50px; font-size: 20px; animation: fall linear infinite; }
+
+        .decor-bg { position: absolute; width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 1; opacity: 0.12; }
+        .decor-text-svg { width: 100%; height: 100%; animation: spin-slow 40s linear infinite; }
+
+        .wrapper { position: relative; cursor: pointer; transition: transform 0.3s; z-index: 10; margin-bottom: 20px; }
+        .wrapper:hover:not(.opened) { transform: scale(1.04); }
+
+        .envelope { width: 340px; height: 230px; background: #ffab91; position: relative; border-radius: 0 0 12px 12px; box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .flap { position: absolute; top: 0; left: 0; width: 0; height: 0; border-left: 170px solid transparent; border-right: 170px solid transparent; border-top: 130px solid #ff8a65; transform-origin: top; transition: transform 0.6s ease-in-out; z-index: 5; }
+        .pocket { position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-left: 170px solid transparent; border-right: 170px solid transparent; border-bottom: 120px solid #ff9e80; z-index: 4; border-radius: 0 0 12px 12px; pointer-events: none; }
+
+        .letter { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 300px; height: 200px; background: #fff; border-radius: 8px; transition: bottom 0.8s ease-in-out 0.4s, height 0.8s ease 0.4s; z-index: 3; padding: 20px 25px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; align-items: center; border: 1px solid #eee; }
+        .letter::before { content: ''; position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px; border: 2px dashed #ffccbc; border-radius: 6px; pointer-events: none; }
+
+        .wrapper.opened .flap { transform: rotateX(180deg); z-index: 1; }
+        .wrapper.opened .letter { bottom: 60px; height: 450px; z-index: 6; box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+
+        .letter-content-wrapper { flex-grow: 1; width: 100%; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column; align-items: center; }
+        .letter-content-wrapper::-webkit-scrollbar { display: none; }
+
+        .letter h2 { font-size: 18px; color: #d84315; margin: 10px 0; text-align: center; width: 100%; opacity: 0; transition: opacity 0.5s; }
+        .text-content { width: 100%; font-size: 15px; line-height: 1.6; color: #4e342e; text-align: justify; font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; }
+
+        .action-area { margin-top: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; opacity: 0; transform: scale(0); transition: all 0.5s; }
+        .big-heart-btn { font-size: 40px; cursor: pointer; color: #d32f2f; background: none; border: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); animation: heartbeat 1.5s infinite; margin-bottom: 5px; }
+        .big-heart-btn:hover { transform: scale(1.18); }
+        .btn-close { font-size: 12px; color: #999; background: none; border: 1px solid #ddd; padding: 4px 10px; border-radius: 15px; cursor: pointer; margin-top: 5px; transition: all 0.3s; }
+        .btn-close:hover { background: #f5f5f5; color: #333; }
+        .helper-text { font-size: 12px; color: #888; margin-top: 2px; }
+
+        .read-letter-btn { position: relative; background: #fff; border: 2px solid #ffab91; color: #d84315; padding: 12px 25px; border-radius: 50px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 171, 145, 0.4); transition: all 0.3s; display: flex; align-items: center; gap: 10px; z-index: 20; margin-top: 10px; }
+        .read-letter-btn:hover { background: #ffab91; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255, 171, 145, 0.6); }
+        .signature { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #aaa; opacity: 0.6; font-weight: 300; pointer-events: none; z-index: 1; }
+
+        @keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.18); } 30% { transform: scale(1); } 45% { transform: scale(1.18); } 60% { transform: scale(1); } 100% { transform: scale(1); } }
+        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fall { 0% { transform: translate(0, -10vh) rotate(0deg); opacity: 1; } 100% { transform: translate(100px, 110vh) rotate(360deg); opacity: 0; } }
+        .cursor { display: inline-block; width: 2px; height: 16px; background: #d84315; animation: blink 0.8s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        @media (max-width: 600px) {
+            .envelope { width: 300px; height: 200px; }
+            .wrapper.opened .letter { width: 280px; height: 400px; bottom: 50px; }
+            .decor-bg { width: 350px; height: 350px; }
+            .flower-group { transform: scale(0.72); bottom: -20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- INTRO SCENE: GALAXY GLOWING ROSES -->
+    <div id="intro-scene" title="Chạm vào hoa để mở thư">
+        <!-- Stars -->
+        <div class="star" style="top:6%; left:18%; animation-delay:0s;"></div>
+        <div class="star" style="top:22%; left:80%; animation-delay:1s;"></div>
+        <div class="star" style="top:66%; left:10%; animation-delay:2s;"></div>
+        <div class="star" style="top:50%; left:50%; animation-delay:0.5s;"></div>
+        <div class="star" style="top:12%; left:62%; animation-delay:1.5s;"></div>
+        <div class="star" style="top:78%; left:88%; animation-delay:2.6s;"></div>
+
+        <!-- Fireflies -->
+        <div class="firefly" style="left: 18%; top: 62%; animation-delay:0s;"></div>
+        <div class="firefly" style="left: 70%; top: 42%; animation-delay:2s;"></div>
+        <div class="firefly" style="left: 50%; top: 80%; animation-delay:4s;"></div>
+
+        <div class="flower-group" id="flower-group">
+            <!-- LEFT FLOWER -->
+            <div class="f-wrapper f-left">
+                <div class="f-stem"><div class="f-leaf l1"></div></div>
+                <div class="f-head">
+                    <!-- 8 petals -->
+                    <div class="petal-layer p1"></div>
+                    <div class="petal-layer p2"></div>
+                    <div class="petal-layer p3"></div>
+                    <div class="petal-layer p4"></div>
+                    <div class="petal-layer p5"></div>
+                    <div class="petal-layer p6"></div>
+                    <div class="petal-layer p7"></div>
+                    <div class="petal-layer p8"></div>
+                    <div class="core"></div>
+                </div>
+            </div>
+
+            <!-- CENTER FLOWER -->
+            <div class="f-wrapper f-center">
+                <div class="f-stem">
+                    <div class="f-leaf l1"></div>
+                    <div class="f-leaf l2"></div>
+                </div>
+                <div class="f-head">
+                    <div class="petal-layer p1"></div>
+                    <div class="petal-layer p2"></div>
+                    <div class="petal-layer p3"></div>
+                    <div class="petal-layer p4"></div>
+                    <div class="petal-layer p5"></div>
+                    <div class="petal-layer p6"></div>
+                    <div class="petal-layer p7"></div>
+                    <div class="petal-layer p8"></div>
+                    <div class="core"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT FLOWER -->
+            <div class="f-wrapper f-right">
+                <div class="f-stem"><div class="f-leaf l1"></div></div>
+                <div class="f-head">
+                    <div class="petal-layer p1"></div>
+                    <div class="petal-layer p2"></div>
+                    <div class="petal-layer p3"></div>
+                    <div class="petal-layer p4"></div>
+                    <div class="petal-layer p5"></div>
+                    <div class="petal-layer p6"></div>
+                    <div class="petal-layer p7"></div>
+                    <div class="petal-layer p8"></div>
+                    <div class="core"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="intro-text">Chạm vào hoa hồng để mở thư</div>
+    </div>
+
+    <!-- MAIN SCENE -->
+    <div id="scene-envelope">
+        <div class="leaves-container" id="leaves-container"></div>
+
+        <div class="decor-bg">
+            <svg class="decor-text-svg" viewBox="0 0 500 500" aria-hidden="true">
+                <path id="circlePathLarge" fill="none" d="M 250, 250 m -200, 0 a 200,200 0 1,1 400,0 a 200,200 0 1,1 -400,0"/>
+                <text font-size="20" fill="#ef9a9a" font-weight="bold" letter-spacing="4">
+                    <textPath href="#circlePathLarge" startOffset="0%">
+                        CHÚC MỪNG NGÀY NHÀ GIÁO VIỆT NAM 20-11 ✿ TRI ÂN THẦY CÔ
+                    </textPath>
+                </text>
+            </svg>
+        </div>
+
+        <div class="wrapper" id="envelope-wrapper">
+            <div class="envelope">
+                <div class="flap"></div>
+                <div class="pocket"></div>
+                <div class="letter">
+                    <div class="letter-content-wrapper">
+                        <h2 id="letter-title">Tri Ân Thầy Cô</h2>
+                        <div class="text-content">
+                            <span id="typing-area"></span><span class="cursor"></span>
+                        </div>
+
+                        <div class="action-area" id="action-area">
+                            <button class="big-heart-btn" id="link-heart-btn" title="Mở quà">❤️</button>
+                            <div class="helper-text">Nhấn trái tim</div>
+                            <button class="btn-close" id="close-letter-btn">Đóng lại</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="read-letter-btn" id="read-letter-btn"><span>🔊</span> Đọc thư cùng em</button>
+        <div class="signature">Made by KaceDev</div>
+    </div>
+
+    <script>
+        // ==========================================
+        // --- CẤU HÌNH USER ---
+        const YOUR_WEBSITE_URL = 'https://YOUR-WEBSITE.COM'; // <-- sửa thành url của bạn (mở trong cùng tab)
+        const AUDIO_MP3_URL = ''; // (tùy chọn) link mp3
+
+        const GREETING_TEXT = `Nhân ngày Nhà giáo Việt Nam 20/11, chúng em xin gửi lời tri ân sâu sắc nhất đến Cô.
+
+Cảm ơn Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em nên người. Kính chúc Cô luôn mạnh khỏe, hạnh phúc và giữ mãi ngọn lửa đam mê với sự nghiệp trồng người cao quý!`;
+
+        // --- DOM ---
+        const introScene = document.getElementById('intro-scene');
+        const flowerGroup = document.getElementById('flower-group');
+        const sceneEnvelope = document.getElementById('scene-envelope');
+        const envelopeWrapper = document.getElementById('envelope-wrapper');
+        const typingArea = document.getElementById('typing-area');
+        const letterTitle = document.getElementById('letter-title');
+        const actionArea = document.getElementById('action-area');
+        const linkHeartBtn = document.getElementById('link-heart-btn');
+        const closeBtn = document.getElementById('close-letter-btn');
+        const cursor = document.querySelector('.cursor');
+        const readBtn = document.getElementById('read-letter-btn');
+
+        let isOpened = false;
+        let isReading = false;
+        let speechUtterance = null;
+        let audioPlayer = null;
+
+        // --- INTRO LOGIC ---
+        introScene.addEventListener('click', () => {
+            // add blooming: petals animate open
+            flowerGroup.classList.add('blooming');
+
+            // small delay then mark magic explosion then hide intro
+            // keep blooming visible long enough so petals open (700ms) then do small 'magic' explosion and fade
+            setTimeout(() => {
+                // optional magic effect (scale up petals quickly)
+                flowerGroup.classList.add('magic');
+            }, 800);
+
+            // fade intro out after animation finishes
+            setTimeout(() => {
+                introScene.style.opacity = '0';
+                setTimeout(() => {
+                    introScene.classList.add('hidden');
+                    sceneEnvelope.style.opacity = '1';
+                }, 600);
+            }, 1400); // enough time to show petal bloom
+        });
+
+        // --- LEAVES ---
+        function createLeaves() {
+            const container = document.getElementById('leaves-container');
+            const leafChars = ['🍂', '🍁', '🍃', '🌸'];
+            for (let i = 0; i < 15; i++) {
+                const el = document.createElement('div');
+                el.classList.add('leaf');
+                el.innerText = leafChars[Math.floor(Math.random() * leafChars.length)];
+                el.style.left = Math.random() * 100 + '%';
+                el.style.fontSize = (Math.random() * 15 + 15) + 'px';
+                el.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                el.style.animationDelay = '-' + (Math.random() * 5) + 's';
+                container.appendChild(el);
+            }
+        }
+        createLeaves();
+
+        // --- OPEN ENVELOPE ---
+        envelopeWrapper.addEventListener('click', (e) => {
+            if (e.target.closest('button') || isOpened) return;
+            openLetter();
+        });
+
+        readBtn.addEventListener('click', () => {
+            if (!isOpened) openLetter();
+            toggleReading();
+        });
+
+        function openLetter() {
+            isOpened = true;
+            envelopeWrapper.classList.add('opened');
+            readBtn.style.opacity = '0';
+            setTimeout(() => readBtn.style.display = 'none', 500);
+
+            setTimeout(() => {
+                letterTitle.style.opacity = '1';
+                typeWriter(GREETING_TEXT, 0);
+            }, 600);
+        }
+
+        // Typing effect
+        function typeWriter(text, i) {
+            if (!isOpened) return;
+            if (i < text.length) {
+                if (text.charAt(i) === '\n') {
+                    typingArea.innerHTML += '<br>';
+                } else {
+                    typingArea.innerHTML += text.charAt(i);
+                }
+
+                const wrapper = document.querySelector('.letter-content-wrapper');
+                wrapper.scrollTop = wrapper.scrollHeight;
+
+                let delay = 40;
+                if (text.charAt(i) === '.' || text.charAt(i) === ',') delay = 140;
+
+                setTimeout(() => typeWriter(text, i + 1), delay);
+            } else {
+                cursor.style.display = 'none';
+                showFinalAction();
+            }
+        }
+
+        function showFinalAction() {
+            actionArea.style.opacity = '1';
+            actionArea.style.transform = 'scale(1)';
+        }
+
+        // --- AUDIO/READING ---
+        function toggleReading() {
+            if (AUDIO_MP3_URL && AUDIO_MP3_URL.trim() !== '') {
+                if (!audioPlayer) {
+                    audioPlayer = new Audio(AUDIO_MP3_URL);
+                    audioPlayer.onended = () => { isReading = false; };
+                }
+                if (isReading) {
+                    audioPlayer.pause();
+                    isReading = false;
+                } else {
+                    audioPlayer.play().catch(e => alert("Không thể phát file âm thanh: " + e));
+                    isReading = true;
+                }
+                return;
+            }
+
+            if ('speechSynthesis' in window) {
+                if (isReading) {
+                    window.speechSynthesis.cancel();
+                    isReading = false;
+                    return;
+                }
+
+                speechUtterance = new SpeechSynthesisUtterance(GREETING_TEXT);
+
+                const voices = window.speechSynthesis.getVoices();
+                const vnVoice = voices.find(voice => (voice.lang && voice.lang.includes('vi')) || (voice.name && (voice.name.includes('Vietnamese') || voice.name.includes('Tiếng Việt'))));
+                if (vnVoice) speechUtterance.voice = vnVoice;
+                else speechUtterance.lang = 'vi-VN';
+
+                speechUtterance.rate = 0.95;
+                speechUtterance.onend = () => { isReading = false; };
+                window.speechSynthesis.speak(speechUtterance);
+                isReading = true;
+            } else {
+                alert("Trình duyệt không hỗ trợ đọc và chưa có file MP3.");
+            }
+        }
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {};
+        }
+
+        // --- BUTTON ACTIONS ---
+        // Open in same tab: change from window.open(..., '_blank') => location.href
+        linkHeartBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (YOUR_WEBSITE_URL && YOUR_WEBSITE_URL.trim() !== '') {
+                // MỞ TRONG CÙNG TAB
+                location.href = kacedevv.github.io/nhagiaovietnam;
+            } else {
+                alert('Chưa cài đặt kacedevv.github.io/nhagiaovietnam trong script.');
+            }
+        });
+
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isOpened = false;
+            envelopeWrapper.classList.remove('opened');
+            typingArea.innerHTML = '';
+            letterTitle.style.opacity = '0';
+            actionArea.style.opacity = '0';
+            actionArea.style.transform = 'scale(0)';
+            cursor.style.display = 'inline-block';
+
+            readBtn.style.display = 'flex';
+            setTimeout(() => readBtn.style.opacity = '1', 100);
+
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            isReading = false;
+        });
+
+    </script>
+</body>
+</html>
