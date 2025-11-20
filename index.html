@@ -321,6 +321,53 @@
         .cursor { display: inline-block; width: 2px; height: 16px; background: #d84315; animation: blink 0.8s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+        /* --- Mobile-specific layout & perf fixes --- */
+        @media (max-width: 720px) {
+          #scene-envelope {
+            padding-top: 4vh; /* small top padding to avoid notch overlap */
+            justify-content: center; /* vertical center */
+          }
+
+          .wrapper {
+            max-width: 360px;
+            padding: 8px;
+            transform: translateY(0) !important;
+          }
+
+          .envelope {
+            width: min(92vw, 340px);
+            height: auto;
+            max-height: 52vh;
+            box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+          }
+
+          .core { filter: none; box-shadow: 0 0 12px #ffd740; }
+
+          .big-heart-btn { font-size: 36px; animation-duration: 2.2s; }
+
+          .leaves-container { opacity: 0.9; }
+          .leaf { animation-duration: 6s !important; font-size: 14px !important; }
+        }
+
+        /* Prefer reduced motion already exists; ensure we are aggressive on mobile low power */
+        @media (prefers-reduced-motion: reduce), (max-width: 720px) {
+          .flower-group .petal-layer,
+          .f-stem,
+          .firefly,
+          .star,
+          .leaf,
+          .read-letter-btn,
+          .big-heart-btn {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
+
+        /* Optional: hide intro-scene entirely on very small screens via CSS fallback */
+        @media (max-width: 520px) {
+          #intro-scene { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+        }
+
         @media (max-width: 600px) {
             .envelope { width: 300px; height: 200px; }
             .wrapper.opened .letter { width: 280px; height: 400px; transform: translate(-50%, -50px); bottom: 0; }
@@ -488,13 +535,25 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
             try {
                 audioPlayer = new Audio(AUDIO_MP3_URL);
                 audioPlayer.preload = 'auto';
-                // don't autoplay; just preload resources
                 audioPlayer.load();
                 audioPlayer.onended = () => { isReading = false; };
             } catch (e) {
                 console.warn('Không thể preload audio:', e);
             }
         }
+
+        // --- QUICK MOBILE PERF & SKIP INTRO ---
+        (function handleMobileIntroSkip() {
+          const isSmall = window.innerWidth < 720;
+          const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+          if (isSmall || isTouch) {
+            introScene.style.opacity = '0';
+            introScene.classList.add('hidden');
+            sceneEnvelope.style.opacity = '1';
+            setTimeout(() => { envelopeWrapper.focus(); }, 120);
+            flowerGroup.classList.remove('blooming', 'magic');
+          }
+        })();
 
         // --- INTRO LOGIC ---
         introScene.addEventListener('click', () => {
@@ -509,7 +568,6 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
                 setTimeout(() => {
                     introScene.classList.add('hidden');
                     sceneEnvelope.style.opacity = '1';
-                    // focus envelope for keyboard users
                     setTimeout(() => envelopeWrapper.focus(), 200);
                 }, 450);
             }, 1200);
@@ -523,27 +581,42 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
             }
         });
 
-        // --- LEAVES ---
+        // --- LEAVES (lighter on small screens) ---
         function createLeaves() {
             const container = document.getElementById('leaves-container');
-            const leafChars = ['🍂', '🍁', '🍃', '🌸'];
-            for (let i = 0; i < 15; i++) {
+            container.innerHTML = '';
+            const leafChars = ['🍂','🍁','🍃'];
+            const count = (window.innerWidth < 720 || ('ontouchstart' in window)) ? 6 : 15;
+            for (let i = 0; i < count; i++) {
                 const el = document.createElement('div');
                 el.classList.add('leaf');
                 el.innerText = leafChars[Math.floor(Math.random() * leafChars.length)];
                 el.style.left = Math.random() * 100 + '%';
-                el.style.fontSize = (Math.random() * 15 + 15) + 'px';
-                el.style.animationDuration = (Math.random() * 5 + 5) + 's';
-                el.style.animationDelay = '-' + (Math.random() * 5) + 's';
-                el.style.opacity = 0.95;
+                el.style.fontSize = (Math.random() * 10 + 14) + 'px';
+                el.style.animationDuration = (Math.random() * 6 + 6) + 's';
+                el.style.animationDelay = '-' + (Math.random() * 6) + 's';
+                el.style.opacity = 0.9;
                 container.appendChild(el);
             }
         }
         createLeaves();
 
+        // optionally: if user rotates device or resizes, throttle re-create leaves
+        let reCreateLeavesTimeout = null;
+        window.addEventListener('resize', () => {
+          clearTimeout(reCreateLeavesTimeout);
+          reCreateLeavesTimeout = setTimeout(() => {
+            createLeaves();
+            if (window.innerWidth < 720) {
+              introScene.style.opacity = '0';
+              introScene.classList.add('hidden');
+              sceneEnvelope.style.opacity = '1';
+            }
+          }, 250);
+        });
+
         // --- OPEN ENVELOPE ---
         envelopeWrapper.addEventListener('click', (e) => {
-            // if clicked a real button inside, ignore (buttons handle themselves)
             if (e.target.closest('button') || isOpened) return;
             openLetter();
         });
@@ -569,11 +642,8 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
             isOpened = true;
             envelopeWrapper.classList.add('opened');
             envelopeWrapper.querySelector('.envelope').setAttribute('aria-pressed', 'true');
-            // hide read button gracefully
             readBtn.style.opacity = '0';
             setTimeout(() => readBtn.style.display = 'none', 400);
-
-            // reveal title and start typing after small delay
             setTimeout(() => {
                 letterTitle.style.opacity = '1';
                 typeWriter(GREETING_TEXT, 0);
@@ -609,7 +679,6 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
                 if (text.charAt(i) === '\n') {
                     typingArea.innerHTML += '<br>';
                 } else {
-                    // escape HTML just in case (simple replace)
                     const ch = text.charAt(i).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                     typingArea.innerHTML += ch;
                 }
@@ -635,7 +704,6 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
 
         // --- AUDIO/READING ---
         function toggleReading() {
-            // if external MP3 provided, use audio player
             if (AUDIO_MP3_URL && AUDIO_MP3_URL.trim() !== '') {
                 if (!audioPlayer) {
                     audioPlayer = new Audio(AUDIO_MP3_URL);
@@ -661,12 +729,10 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
 
                 speechUtterance = new SpeechSynthesisUtterance(GREETING_TEXT);
 
-                // choose a Vietnamese voice if available (robust against getVoices returning empty initially)
                 let vnVoice = null;
                 if (availableVoices && availableVoices.length) {
                     vnVoice = availableVoices.find(voice => (voice.lang && voice.lang.toLowerCase().includes('vi')) || (voice.name && (voice.name.toLowerCase().includes('vietnamese') || voice.name.toLowerCase().includes('tiếng việt'))));
                 } else {
-                    // fallback: call getVoices() once more
                     const voicesNow = window.speechSynthesis.getVoices() || [];
                     vnVoice = voicesNow.find(voice => (voice.lang && voice.lang.toLowerCase().includes('vi')) || (voice.name && (voice.name.toLowerCase().includes('vietnamese') || voice.name.toLowerCase().includes('tiếng việt'))));
                 }
@@ -684,16 +750,13 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
         }
 
         // --- BUTTON ACTIONS ---
-        // Open in same tab (use location.assign)
         linkHeartBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
             if (YOUR_WEBSITE_URL && YOUR_WEBSITE_URL.trim() !== '') {
-                // open in same tab (as requested)
                 try {
                     location.assign(YOUR_WEBSITE_URL);
                 } catch (err) {
-                    // fallback
                     window.location.href = YOUR_WEBSITE_URL;
                 }
             } else {
@@ -715,10 +778,12 @@ Cảm ơn Thầy Cô đã luôn tận tụy, kiên nhẫn dìu dắt chúng em n
 
         // Safe focus management: when page loads, focus intro (so keyboard users can press Enter)
         window.addEventListener('load', () => {
-            // focus intro scene for immediate keyboard access (if visible)
             if (!introScene.classList.contains('hidden')) {
                 introScene.setAttribute('tabindex', '0');
                 introScene.focus();
+            } else {
+                // if skipped, ensure envelope is visible and focused
+                setTimeout(() => envelopeWrapper.focus(), 120);
             }
         });
     </script>
